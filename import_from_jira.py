@@ -57,7 +57,7 @@ if __name__ == "__main__":
     jira_response.raise_for_status()
 
     tp_project_id = get_entity_id("projects", args.tp_project)
-    tp_team_id = get_entity_id("generals", args.tp_team)
+    tp_team_id = get_entity_id("teams", args.tp_team)
 
     jira_summary = jira_response.json()['fields']['summary']
     jira_description = jira_base_url + "/browse/" + jira_id
