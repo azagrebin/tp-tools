@@ -45,6 +45,11 @@ if __name__ == "__main__":
     parser.add_argument('--tp-team', type=str, dest='tp_team', required=True,
                         help='team to assign, for example "Dream Team"')
 
+    parser.add_argument('--tags', type=str, dest='tags', required=False,
+                        help='tags to assign')
+
+    parser.add_argument('--issue-type', type=str, dest='issue_type', required=False, default="user-story",
+                        help='issue type, can be one of "user-story" or "bug"')
 
     args = parser.parse_args()
 
@@ -69,10 +74,18 @@ if __name__ == "__main__":
             'Description': jira_description}
     if args.tp_feature_id != None:
         data['Feature'] = {'Id': args.tp_feature_id}
-    tp_add_user_story_url = f"{tp_rest_base_url}/UserStories?access_token={tp_access_token}&format=json"
-    tp_response = requests.post(tp_add_user_story_url, json = data, headers = {'Content-type': 'application/json'})
+    if args.tags != None:
+        data['Tags'] = args.tags
+    if (args.issue_type == "user-story"):
+        tp_add_user_story_url = f"{tp_rest_base_url}/UserStories?access_token={tp_access_token}&format=json"
+        tp_response = requests.post(tp_add_user_story_url, json = data, headers = {'Content-type': 'application/json'})
+    elif (args.issue_type == "bug"):
+        tp_add_bug_url = f"{tp_rest_base_url}/Bugs?access_token={tp_access_token}&format=json"
+        tp_response = requests.post(tp_add_bug_url, json = data, headers = {'Content-type': 'application/json'})
+    else:
+        raise f"Unknown issue type {args.issue_type}."
 
     tp_response.raise_for_status()
     tp_id = tp_response.json()['Id']
     tp_url = f"{tp_base_url}/entity/{tp_id}"
-    print(f"Added user story: {tp_url}")
+    print(f"Added issue: {tp_url}")
