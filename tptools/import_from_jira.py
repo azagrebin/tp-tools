@@ -14,12 +14,7 @@ tp_rest_base_url = "https://dataartisans.tpondemand.com/api/v1"
 
 default_tp_project_name = "Apache Flink"
 
-tp_access_token = os.environ.get('TP_ACCESS_TOKEN')
-
-if tp_access_token is None:
-    raise Exception("Need to have TP access token in TP_ACCESS_TOKEN env variable")
-
-def get_entity_id(entity_type, entity_name):
+def get_entity_id(entity_type, entity_name, tp_access_token):
     tp_entity_url = f"{tp_rest_base_url}/{entity_type}?access_token={tp_access_token}&format=json&where=(Name eq '{entity_name}')"
     tp_response = requests.get(tp_entity_url)
 
@@ -31,7 +26,12 @@ def get_entity_id(entity_type, entity_name):
         raise Exception(f"Could not find entity {entity_name} in {entity_type}")
     return tp_id
 
-if __name__ == "__main__":
+def main():
+    tp_access_token = os.environ.get('TP_ACCESS_TOKEN')
+
+    if tp_access_token is None:
+        raise Exception("Need to have TP access token in TP_ACCESS_TOKEN env variable")
+
     parser = argparse.ArgumentParser(description='Import a Jira Issue into Target Process and link to the original issue.')
     parser.add_argument('jira_id', metavar='ID', type=str,
                         help='id of the Jira Issue to import, for example FLINK-1337')
@@ -61,8 +61,8 @@ if __name__ == "__main__":
     # throw an exception in case of failure
     jira_response.raise_for_status()
 
-    tp_project_id = get_entity_id("projects", args.tp_project)
-    tp_team_id = get_entity_id("teams", args.tp_team)
+    tp_project_id = get_entity_id("projects", args.tp_project, tp_access_token)
+    tp_team_id = get_entity_id("teams", args.tp_team, tp_access_token)
 
     jira_summary = jira_response.json()['fields']['summary']
     jira_description = jira_base_url + "/browse/" + jira_id
@@ -89,3 +89,6 @@ if __name__ == "__main__":
     tp_id = tp_response.json()['Id']
     tp_url = f"{tp_base_url}/entity/{tp_id}"
     print(f"Added issue: {tp_url}")
+
+if __name__ == "__main__":
+    main()
